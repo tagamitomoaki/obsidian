@@ -1,0 +1,32 @@
+---
+type: entity
+domain: [business]
+created: 2026-08-03
+updated: 2026-08-03
+sources: ["[[Claude一般セッション 2026-06〜07]]"]
+tags: [WordPress, ブログ, マーケティング]
+---
+
+# yamanosumika.jp
+
+[[やまのすみか]]の公式サイト（WordPress 7.0.1・本番）。固定8ページ・記事70件超・FAQ約60問・CPT（お知らせ info / 施工事例 construction / 日々 diary / LP）。
+
+## MCP 接続（2026-07-17 設定）
+
+- 公式 **WordPress MCP Adapter** + **Enable Abilities for MCP** の2枚構成で53 abilities（投稿 CRUD・メディア・SEO 等）が利用可能
+- 認証は Application Password を Windows ユーザー環境変数で（config 直書きしない）。**本番サイトなので書き込みは慎重に**（create-post のデフォルトは draft、公開は本人確認を挟む）
+- 画像は REST 経由アップロードでも EWWW Image Optimizer が効く（PNG 1.5MB→JPEG 133KB 実測）
+
+## ブログ100本プロジェクト（2026-07-17〜18）
+
+- 事業戦略（G3 新築コア+性能向上リフォーム先行+技術で信頼）に基づき100本を執筆し**全て draft で投入済み**（post_id 13707〜13817）。原稿・タイトル表・postmap は `Documents\Claude\blog-drafts\`
+- 内訳: マニアック技術枠35本・性能向上リノベ15本・お金の透明性12本ほか。渾身の11本は Fable 本人が執筆（cognitive-rhythm-writing / japanese-tech-writing 適用）、残りは Sonnet サブエージェント
+- **誤変換事故の教訓**: エージェント経由の MCP 投稿は本文をモデルが再生成するため、形の似た別漢字への誤変換が65/100本に混入（廊下→廈下等）→ WP REST API 直叩きでローカル原稿を機械再送信して解消（バイト一致検証済み）。**一括投稿は今後 REST スクリプトで行う**
+- 未実施: アイキャッチ100本分、**公開前の人間の通読**（特に費用目安・経営数字を含む記事）
+
+## サイト鮮度監査（2026-07-17）
+
+- 全体検証で「明確に古い6件・要確認7件」を検出。補助金名の世代遅れ（子育てエコホーム→みらいエコ住宅2026事業）、GX 補助額 160万→110万 等の12箇所を即修正
+- 持ち越し7件は本人からの情報待ち（現場予定の現況・決算公告 PDF・アフター点検年数など）
+
+関連: [[やまのすみか]] [[AI協業開発体制]]
