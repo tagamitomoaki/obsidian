@@ -25,8 +25,10 @@ LLM が構築・保守する個人ナレッジベースであり、Obsidian ボ�
   index.md              ← 全ページの索引（内容別カタログ）
   log.md                ← 追記専用の時系列ログ
   QUEUE/                ← 依頼の置き場（非同期インボックス。毎朝の定期タスクが処理）
-  raw/                  ← ユーザーが投入する不変ソース
+  raw/                  ← ユーザーが投入する不変ソース。由来別のサブフォルダで割る
     assets/             ← クリップ記事の画像（Obsidian の添付ファイル保存先）
+    meetings/           ← 打ち合わせメモ（将来スタッフ共有の可能性がある生データはここ）
+    notion/ evernote/   ← 各サービスからのエクスポート（例）
   wiki/
     sources/            ← ソース要約（raw の1ソースにつき1ページ）
     entities/           ← 固有名詞（人物・組織・製品・場所など）
@@ -56,12 +58,15 @@ LLM が構築・保守する個人ナレッジベースであり、Obsidian ボ�
 ---
 type: source | entity | concept | note
 domain: [research, business, personal]   # 該当するもののみ、複数可
+share: staff   # 任意。将来スタッフに共有してよいページにのみ付ける。省略 = 非共有
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 sources: []   # 根拠となる raw ファイル名 or [[sources ページ]]
 tags: []
 ---
 ```
+
+**share の規約**: 共有の軸はドメインと独立（business でも掛率・粗利など経営情報は非共有）。`share: staff` のページから非共有ページへ [[リンク]] を張らない（lint で検知する）。将来の共有は「share: staff のページ + 参照 raw」を別リポジトリへ抽出する方式。
 
 ## ワークフロー
 
