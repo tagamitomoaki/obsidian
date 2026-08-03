@@ -29,4 +29,4 @@ wiki 全ページの索引。ingest のたびに LLM が更新する。
 
 ## Notes
 
-（まだなし）
+- [[自動化の実行層検討（N8N見送り）]] — Obsidian×Claude×N8N 記事の検討結果。QUEUE+定期タスクで代替、N8N は再検討トリガー付きで見送り
