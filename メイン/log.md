@@ -32,3 +32,9 @@
 - Codex が共通スキーマを確実に読むため、リポジトリ直下に `AGENTS.md` を追加
 - `CLAUDE.md` を全エージェント共通規約の正本とし、規約の二重管理を避ける構成にした
 - Notes に [[CodexとClaudeの情報共有運用]] を追加し、引継ぎ単位・レビュー分担・保存境界・読込順を明文化
+
+## [2026-08-04] setup | Yamasemi とのリポジトリ間同期規約を追加
+
+- Yamasemi のコード・Issue / PR・handoff を開発状態の正本、Obsidian Wiki を蒸留知識の正本として責任分界
+- 同期対象と除外対象、矛盾時の扱い、根拠の残し方、別 commit / push の原則をスキーマへ追加
+- Wiki の場所は `OBSIDIAN_WIKI_ROOT`、未設定時は `../obsidian` の順で解決する運用にした
