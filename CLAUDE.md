@@ -28,6 +28,7 @@ LLM が構築・保守する個人ナレッジベースであり、Obsidian ボ�
   raw/                  ← ユーザーが投入する不変ソース。由来別のサブフォルダで割る
     assets/             ← クリップ記事の画像（Obsidian の添付ファイル保存先）
     meetings/           ← 打ち合わせメモ（将来スタッフ共有の可能性がある生データはここ）
+    discord/            ← Discord Bot取得ログ。個人情報を含み得るためGit管理外
     notion/ evernote/   ← 各サービスからのエクスポート（例）
   wiki/
     sources/            ← ソース要約（raw の1ソースにつき1ページ）
@@ -99,6 +100,13 @@ Yamasemi など別リポジトリのコード、Issue / PR、handoff が各プ�
 - 同期元と wiki が矛盾する場合、同期元の現在状態を優先し、wiki 側には旧記述を消さず変更日と根拠を添える
 - リポジトリ間の更新は別々の差分・commit として扱い、一方の commit 成功を他方の更新完了とみなさない
 - 顧客個人情報とシークレットは同期しない
+
+### Discord ingest
+
+- 取得手順は `scripts/discord-export.md`、実行ファイルは `scripts/discord-export.mjs`
+- `メイン/raw/discord/` はローカル専用かつGit管理外。LLMは内容を読めるが、Gitへ追加しない
+- Discordログをwikiへ反映するときは、顧客個人情報、私的会話、認証情報を除去し、意思決定・業務仕様・再利用可能な知識だけを蒸留する
+- Botトークンは `.env.local` だけに置き、表示・転記・コミットしない
 
 ### QUEUE 処理（非同期インボックス）
 
