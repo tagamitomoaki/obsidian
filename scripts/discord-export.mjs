@@ -33,7 +33,25 @@ function atomicWriteJson(file, value) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const temporary = `${file}.tmp`;
   fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
-  fs.renameSync(temporary, file);
+  let lastError;
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    try {
+      fs.renameSync(temporary, file);
+      return;
+    } catch (error) {
+      lastError = error;
+      if (!['EPERM', 'EACCES'].includes(error.code)) throw error;
+      try {
+        fs.copyFileSync(temporary, file);
+        fs.rmSync(temporary, { force: true });
+        return;
+      } catch (copyError) {
+        lastError = copyError;
+      }
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100 * (attempt + 1));
+    }
+  }
+  throw lastError;
 }
 
 function safeFilename(value) {
