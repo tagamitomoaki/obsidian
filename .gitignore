@@ -2,3 +2,5 @@
 メイン/.obsidian/workspace-mobile.json
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
+.env.local
+.env*
