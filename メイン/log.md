@@ -26,3 +26,9 @@
 - QUEUE の依頼メモ「N8N検討まとめ依頼」を処理（QUEUE 運用の通しテスト）
 - 成果物: [[自動化の実行層検討（N8N見送り）]] を wiki/notes/ に作成、index 登録
 - QUEUE → 実行 → notes → index/log → push の全行程を確認
+
+## [2026-08-03] setup | Codex と Claude の情報共有入口を追加
+
+- Codex が共通スキーマを確実に読むため、リポジトリ直下に `AGENTS.md` を追加
+- `CLAUDE.md` を全エージェント共通規約の正本とし、規約の二重管理を避ける構成にした
+- Notes に [[CodexとClaudeの情報共有運用]] を追加し、引継ぎ単位・レビュー分担・保存境界・読込順を明文化
