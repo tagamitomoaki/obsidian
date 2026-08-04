@@ -1,5 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {
+  ARCHIVE_FORMAT_VERSION,
+  assertArchiveVersionSupported,
+  assertExistingArchiveIntegrity,
+  messageFileIntegrity,
+} from './discord-archive-integrity.mjs';
 
 const API_BASE = 'https://discord.com/api/v10';
 const MESSAGE_CHANNEL_TYPES = new Set([0, 2, 5, 13]);
@@ -185,10 +191,19 @@ async function downloadAttachment(attachment, messageId, destination) {
 const startedAt = new Date().toISOString();
 const guildRoot = path.join(outputRoot, guildId);
 const checkpointFile = path.join(guildRoot, 'checkpoint.json');
-const checkpoint = fs.existsSync(checkpointFile)
+const checkpointExists = fs.existsSync(checkpointFile);
+const checkpoint = checkpointExists
   ? JSON.parse(fs.readFileSync(checkpointFile, 'utf8'))
-  : { guildId, channels: {} };
+  : { archiveFormatVersion: ARCHIVE_FORMAT_VERSION, guildId, channels: {} };
+assertArchiveVersionSupported({ checkpointExists, archiveFormatVersion: checkpoint.archiveFormatVersion });
+const archiveWasVersion2 = checkpoint.archiveFormatVersion === ARCHIVE_FORMAT_VERSION;
+if (checkpoint.channels == null || typeof checkpoint.channels !== 'object' || Array.isArray(checkpoint.channels)) {
+  throw new Error('checkpoint.json の channels が不正です。');
+}
+checkpoint.archiveFormatVersion = ARCHIVE_FORMAT_VERSION;
+checkpoint.guildId = guildId;
 const report = {
+  archiveFormatVersion: ARCHIVE_FORMAT_VERSION,
   startedAt,
   finishedAt: null,
   guildId,
@@ -213,11 +228,13 @@ report.threadCount = threads.length;
 
 fs.mkdirSync(guildRoot, { recursive: true });
 atomicWriteJson(path.join(guildRoot, 'guild.json'), {
+  archiveFormatVersion: ARCHIVE_FORMAT_VERSION,
   id: guild.id,
   name: guild.name,
   exportedAt: startedAt,
 });
 atomicWriteJson(path.join(guildRoot, 'channels.json'), {
+  archiveFormatVersion: ARCHIVE_FORMAT_VERSION,
   exportedAt: startedAt,
   channels,
   threads,
@@ -232,8 +249,17 @@ for (const channel of messageChannels) {
   const channelRoot = path.join(guildRoot, 'messages', channel.id);
   const messageFile = path.join(channelRoot, 'messages.jsonl');
   const attachmentRoot = path.join(guildRoot, 'attachments', channel.id);
-  const previous = checkpoint.channels[channel.id]?.latestMessageId;
+  const previousEntry = checkpoint.channels[channel.id];
+  const previous = previousEntry?.latestMessageId;
   try {
+    if (archiveWasVersion2) {
+      const existingIntegrity = await messageFileIntegrity(messageFile);
+      assertExistingArchiveIntegrity({
+        entry: previousEntry,
+        integrity: existingIntegrity,
+        messageFileExists: fs.existsSync(messageFile),
+      });
+    }
     const messages = await fetchNewMessages(channel.id, previous);
     fs.mkdirSync(channelRoot, { recursive: true });
     atomicWriteJson(path.join(channelRoot, 'channel.json'), {
@@ -247,10 +273,6 @@ for (const channel of messageChannels) {
       const body = `${messages.map((message) => JSON.stringify(message)).join('\n')}\n`;
       if (previous) fs.appendFileSync(messageFile, body, 'utf8');
       else fs.writeFileSync(messageFile, body, 'utf8');
-      checkpoint.channels[channel.id] = {
-        latestMessageId: messages.at(-1).id,
-        lastSyncedAt: new Date().toISOString(),
-      };
       report.newMessageCount += messages.length;
 
       if (downloadAttachments) {
@@ -271,12 +293,15 @@ for (const channel of messageChannels) {
           }
         }
       }
-    } else if (!checkpoint.channels[channel.id]) {
-      checkpoint.channels[channel.id] = {
-        latestMessageId: null,
-        lastSyncedAt: new Date().toISOString(),
-      };
     }
+
+    const integrity = await messageFileIntegrity(messageFile);
+    checkpoint.channels[channel.id] = {
+      latestMessageId: integrity.latestMessageId,
+      lastSyncedAt: new Date().toISOString(),
+      messageCount: integrity.messageCount,
+      contentSha256: integrity.contentSha256,
+    };
 
     report.processedChannelCount += 1;
     atomicWriteJson(checkpointFile, checkpoint);

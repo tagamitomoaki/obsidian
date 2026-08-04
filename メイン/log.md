@@ -72,3 +72,22 @@
 - スター付きメールの遡り約250件（2021-01〜2026-05）→ [[スター付きメール遡り 2021〜2026-05]]。経営判断記録・掛率実績・施工標準・申請の型・対外役職（JBN 副委員長ほか）を回収
 - [[やまのすみか]] に施工エリア・受注導線・対外活動を追記
 - 毎朝の wiki-queue-ingest タスクに「新着スター付きメールの蒸留」を組み込み（スキーマの QUEUE 節と整合）
+
+## [2026-08-04] ingest | Yamasemi Discord履歴検索設計
+
+- Yamasemi Issue #24、Draft PR #25、設計書から、[[Discord履歴検索]]の責任分界、データモデル、認可、AI送信ゲート、同期限界を蒸留
+- [[Yamasemi]]の`/chat`記述を旧状態として残し、画面とAPIは撤去済み、社内チャットはDBのみ温存という2026-08-04時点の状態を追記
+- 顧客ログ原文、チャンネル名、投稿者名、認証情報はWikiへ同期せず、再利用できる設計判断だけを記録
+- [[開発原則]]の「施主情報をAIへ渡さない」と任意AI回答の間に未解決な緊張があるため、feature flagを既定無効とする運用判断を明記
+- ローカル検索許可と外部AI送信許可をチャンネル単位で分離し、AIには検索語・本文断片・日時だけを送る設計へ更新
+- archive事前検査で不正JSONL 5行と履歴不一致6チャンネルを検出。本番取込前の再取得が必要
+
+## [2026-08-04] ingest | Discord履歴検索の運用前検証
+
+- 元archiveを変更せず全件再取得し、format version 2の最終状態で159チャンネルとスレッド、33,660メッセージ、警告0件、エラー0件でdry-runを完了
+- 初回の不正JSONLは本文中U+2028の改行誤認、履歴不一致はDiscordの現在値をexport完了マーカーに流用した取込側の判定ミスと特定
+- JSONLをLF区切りで読み、exporterの完了report、チャンネル別件数、SHA-256、checkpointを検証の正本に変更
+- 差分取得前にも前回checkpointを照合し、既存archiveの破損を新しい基準値で上書きしないfail-closed処理を追加
+- Discord Current Application APIでMessage Content Intent有効を確認
+- 本番DBのread-only preflightで対象4表・3 RPCが未適用、部分適用0件、依存footprint全件存在、PostgREST用roleの`statement_timeout`設定済みを確認
+- 本番migration、実取込、適用後のRLS・GRANT・RPC・実行計画検証は未実施のため、機能は未有効化
