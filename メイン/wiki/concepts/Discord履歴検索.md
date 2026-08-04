@@ -19,7 +19,17 @@ Discordのチャンネルやスレッドを人手で遡る作業を、[[Yamasemi
 
 追跡元は`yamanosumika/yamasemi`のIssue #24とPR #25、設計の正本は`docs/discord-knowledge-search-design.md`である。
 
-本番migration適用、実ログ取込、実RLS検証、Vercel環境変数設定は未実施。
+本番migration適用、実ログ取込、migration適用後の実RLS検証、Vercel環境変数設定は未実施。
+
+2026-08-04に元archiveを変更せず全件を再取得し、archive format version 2へ更新した。
+
+最終結果は159チャンネルとスレッド、33,660メッセージ、件数・SHA-256一致、警告0件、エラー0件だった。
+
+Discord Current Application APIでMessage Content Intentが有効であることも確認した。
+
+本番Supabaseのread-only preflightでは対象4表と3 RPCが全て不在で、migrationの部分適用は0件、依存footprintは全件存在した。
+
+PostgRESTが使う`authenticated`と接続元の`authenticator`の`statement_timeout`は8秒に設定済みであり、検索RPC側にも8秒を明示する設計へ更新した。
 
 したがって、現時点では本番で検索できない。
 
@@ -109,7 +119,31 @@ REST pollingでは削除イベントを検出できず、最新ページより�
 
 完全追従にはDiscord Gateway workerが必要である。
 
-既存archiveのdry-runでは不正JSONL 5行と履歴不一致6チャンネルが見つかり、実取込前の再取得が必要になった。
+初回archive dry-runの不正JSONL 5行は、正しいJSON本文内のU+2028を汎用行読取APIが改行と誤認した取込側の問題だった。
+
+履歴不一致6チャンネルも、Discordの`last_message_id`をexport完了マーカーに流用した判定が原因だった。
+
+JSONLはLFだけで分割し、exporter自身の完了reportとcheckpointを検証の正本に変更した。
+
+最新Message IDだけでは途中行の欠落を検出できないため、archive format version 2ではチャンネル別message件数とJSONL全体のSHA-256もcheckpointへ記録する。
+
+各チャンネルのmessage差分取得前にも既存JSONLを前回checkpointへ照合し、不一致なら当該チャンネルを更新せずarchive全体をエラー状態にする。
+
+この修正後に全件を再取得し、159チャンネルとスレッド、33,660メッセージ、件数・SHA-256一致、警告0件、エラー0件でdry-runを完了した。
+
+これは「ソースの現在値」「取得処理が完了した位置」「保存済みファイルの完全性」を別々に検証するという、差分取込全般に再利用できる原則である。
+
+## 運用開始ゲート
+
+運用前の確認は、外部取得、DB適用、実アクセス検証を分ける。
+
+外部取得側はarchive再取得とpreflight、Message Content Intentの確認まで完了した。
+
+DB側はread-only preflightとrole timeout確認まで完了したが、対象migrationは未適用である。
+
+したがって、RLS、GRANT、検索RPC、実データの実行計画はまだ検証できない。
+
+migration適用後にanon、一般authenticated、管理者、service roleの実アクセスを確認し、実データで索引利用と応答時間を検証するまで本番機能を有効化しない。
 
 ## 再利用できる原則
 

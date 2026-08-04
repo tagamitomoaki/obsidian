@@ -28,6 +28,20 @@ node scripts/discord-export.mjs
 2回目以降は `checkpoint.json` のMessage IDまで遡り、それより新しいメッセージだけをJSONLへ追記する。
 Discord APIの429応答は待機して再試行する。
 
+各実行では、全message channelについて`checkpoint.json`をarchive format version 2へ更新する。
+
+checkpointは最新Message IDに加え、JSONLのmessage件数、SHA-256、今回の同期時刻を保持する。
+
+Yamasemi取込前のpreflightはこれらを照合し、途中行の欠落やファイル破損を検出する。
+
+2回目以降の取得では、各チャンネルのmessage差分APIを呼ぶ前に既存JSONLを前回checkpointへ照合する。
+
+不一致なら当該チャンネルへ差分を追記せず、archive全体をエラー状態にする。
+
+version 1の既存archiveは自動更新しない。
+
+別の出力先へ全件再取得する。
+
 ## 出力
 
 ```text
