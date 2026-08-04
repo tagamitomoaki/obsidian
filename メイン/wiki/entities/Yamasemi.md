@@ -3,7 +3,7 @@ type: entity
 domain: [business]
 created: 2026-08-03
 updated: 2026-08-04
-sources: ["[[Claude一般セッション 2026-06〜07]]", "[[ymsk-coreセッション 2026-07-05]]", "[[Discord業務ログ 2022〜2026]]"]
+sources: ["[[Claude一般セッション 2026-06〜07]]", "[[ymsk-coreセッション 2026-07-05]]", "[[Discord業務ログ 2022〜2026]]", "yamanosumika/yamasemi Issue #24", "https://github.com/yamanosumika/yamasemi/pull/25", "yamanosumika/yamasemi docs/discord-knowledge-search-design.md"]
 tags: [yamasemi, システム, 開発]
 ---
 
@@ -38,12 +38,14 @@ Discordの業務ログには、2023年の現場Plus導入、2024年の工務店�
 - 顧客・物件・契約台帳（施主プロフィール・問い合わせ経緯・GoogleMap 対応）、契約PDF不変保存
 - 認証: 招待制（公開サインアップなし）+ TOTP 2FA 三層強制 + ユーザー管理画面 /users
 - 勤怠打刻（/punch PWA、追記専用台帳 attendance_events・赤伝方式、freee 人事労務へ15分毎 cron 送信）
-- BIM/IFC 取込（基準面積6種プリフィル・建具展開）、社内チャット /chat、職人ボード /workers、現場ポータル
+- 2026-08-03時点の記録では、BIM/IFC 取込（基準面積6種プリフィル・建具展開）、社内チャット /chat、職人ボード /workers、現場ポータルを主要機能としていた
+- 2026-08-04訂正: `/chat`画面とAPIは2026-07-19に撤去済みで、社内チャットはDBだけを温存している。今回の[[Discord履歴検索]]は送受信しない読取検索として別責任で実装した
+- [[Discord履歴検索]]（専用の読取ミラー、チャンネル単位で分離した検索許可と外部AI送信許可、Discord原文リンク、任意の根拠付きAI回答）はコード実装済み。本番migrationと実取込は未実施
 - UI: ブランドパレット v0.2（ダストブルー/セージ/アンバー/コーラル）、ダッシュボードにヤギと鶏の装飾
 
 ## 撤去したもの
 
-- **社外チャット（LINE/Chatwork 中継・メール取込）**: 2026-07-19 本人決定で恒久撤去（migration 20260735、データごと DROP）。LINE WORKS のログ監視へ方針転換（未設計）。社内チャットは温存
+- **社外チャット（LINE/Chatwork 中継・メール取込）**: 2026-07-19 本人決定で恒久撤去（migration 20260735、データごと DROP）。LINE WORKS のログ監視へ方針転換（未設計）。当時の「社内チャットは温存」はDBテーブルとデータを指し、`/chat`画面とAPIは撤去済み
 
 ## 運用ルール（人間が握る関所）
 
@@ -59,5 +61,6 @@ Discordの業務ログには、2023年の現場Plus導入、2024年の工務店�
 - ステージング環境（staging ブランチ+無料 Org の検証用 Supabase）: 設計済み・構築は未了
 - LINE WORKS ログ監視の設計、freee 原価実績の cost_actuals 本実装、GLOOBE 本番パーサー（IfcOpenShell+Cloud Run、FR-7 改訂指示書待ち）
 - Vercel Hobby→Pro 化の推奨が出ている（業務利用の規約・ログ保持・cron 制約）
+- [[Discord履歴検索]]のAI回答を本番有効化するか。[[開発原則]]の「施主情報をAIへ渡さない」との整合確認が必要
 
-関連: [[やまのすみか]] [[原価管理パイプライン]] [[業務ツールの導入と撤退]] [[AI協業開発体制]] [[開発原則]] [[freee]] [[Codex]] [[西永さん]]
+関連: [[やまのすみか]] [[原価管理パイプライン]] [[業務ツールの導入と撤退]] [[Discord履歴検索]] [[AI協業開発体制]] [[開発原則]] [[freee]] [[Codex]] [[西永さん]]
